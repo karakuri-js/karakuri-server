@@ -1,0 +1,16 @@
+{
+  "name": "karakuri",
+  "version": "0.0.0",
+  "description": "Karaoke Machine",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Hugo Agbonon",
+  "license": "ISC",
+  "dependencies": {
+    "async": "^2.0.0-rc.3",
+    "express": "^4.13.3",
+    "mplayer": "^2.0.1"
+  }
+}
