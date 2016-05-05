@@ -16,7 +16,7 @@ const askForSearch = () => {
 		let regexes = []
 		const words = res.search.split(' ')
 		words.forEach(w => {
-			regexes.push(new RegExp('(' + w + ')', 'i'))
+			regexes.push(new RegExp('(' + w + ')', 'ig'))
 		})
 
 		let count = 1
