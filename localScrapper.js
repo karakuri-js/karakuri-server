@@ -87,5 +87,5 @@ createDataDir();
 getDirectoryContents('./karaoke', function(err, results) {
   if (err) return console.error(err);
   allContents = keepVideoContents(results).map((element, id) => Object.assign({}, element, { id }));
-  fs.writeFileSync('./.data/allContents.json', JSON.stringify(allContents));
+  fs.writeFileSync('./.data/allContents.json', JSON.stringify(allContents, null, 2));
 });
