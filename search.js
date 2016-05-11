@@ -1,6 +1,6 @@
 'use strict'
 
-const exec = require('child_process').exec
+const { addToPlaylist } = require('./lib/smplayer')
 const fs = require('fs')
 const prompt = require('prompt')
 const colors = require('colors')
@@ -9,42 +9,30 @@ const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
 
 const isTrue = b => b
 
-const onExec = (param) => {
-	exec('smplayer -add-to-playlist "' + param + '"')
-}
-
-const findKaras = (karaokes, regexes) => {
-	let karaFound = []
-	karaokes.forEach(kara => {
-		const regexRes = regexes.map(r => {
-			return kara.fileName.match(r)
-		})
-		if (regexRes.every(isTrue)) {
-			karaFound.push(kara)
-		}
-	})
-	return karaFound
-}
+const findKaras = (karaokes, regexes) => karaokes.reduce(
+	(foundKaras, kara) => {
+		const regexRes = regexes.map(r => kara.fileName.match(r))
+		return regexRes.every(isTrue) ? foundKaras.concat(kara) : foundKaras
+	},
+	[]
+)
 
 prompt.start()
 
 const askForSearch = () => {
 	prompt.get(['search'], (err, res) => {
-		let regexes = []
 		const words = res.search.split(' ')
-		words.forEach(w => {
-			regexes.push(new RegExp('(' + w + ')', 'ig'))
-		})
+		const regexes = words.map(w => new RegExp('(' + w + ')', 'ig'))
 
 		const karaFound = findKaras(allContents, regexes)
 		if (karaFound.length) {
 			console.log('0: do nothing')
-			karaFound.forEach((kara, index) => {
-				let path = kara.path
-				regexes.forEach(r => {
-					path = path.replace(r, '\$1'.green)
-				})
-				console.log((index + 1) + ": " + path)
+			karaFound.forEach(({ path }, index) => {
+				const coloredPath = regexes.reduce(
+					(previous, regex) => previous.replace(regex, '\$1'.green),
+					path
+				)
+				console.log((index + 1) + ": " + coloredPath)
 			})
 		}
 		askForKara(karaFound).then(askForSearch)
@@ -58,7 +46,7 @@ const askForKara = (choices) => {
 			if (choice !== 0 && parseInt(choice, 10) == choice) {
 				const kara = choices[choice - 1]
 				console.log('adding to smplayer: ' + kara.fileName)
-				onExec(kara.path)
+				addToPlaylist(kara.path)
 			}
 			resolve()
 		})
