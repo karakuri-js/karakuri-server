@@ -25,16 +25,19 @@ const askForSearch = () => {
 		const regexes = words.map(w => new RegExp('(' + w + ')', 'ig'))
 
 		const karaFound = findKaras(allContents, regexes)
-		if (karaFound.length) {
-			console.log('0: do nothing')
-			karaFound.forEach(({ path }, index) => {
-				const coloredPath = regexes.reduce(
-					(previous, regex) => previous.replace(regex, '\$1'.green),
-					path
-				)
-				console.log((index + 1) + ": " + coloredPath)
-			})
+		if (!karaFound.length) {
+			console.warn('No results')
+			return askForSearch()
 		}
+
+		console.log('0: do nothing')
+		karaFound.forEach(({ path }, index) => {
+			const coloredPath = regexes.reduce(
+				(previous, regex) => previous.replace(regex, '\$1'.green),
+				path
+			)
+			console.log((index + 1) + ": " + coloredPath)
+		})
 		askForKara(karaFound).then(askForSearch)
 	})
 }
