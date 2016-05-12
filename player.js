@@ -16,19 +16,40 @@
 
 
 
-
 const Mplayer = require('mplayer');
 const fs = require('fs');
+const argv = require('minimist')(process.argv.slice(2));
+
+if (argv.h || argv.help) {
+	console.log('usage: node player.js [options]\n')
+	console.log('  -p [PORT_ID]    sets the port used by the server')
+	console.log('  -novideo        play only audio')
+	console.log('  -v              display the path of played video')
+	console.log('  -debug          set verbose and debug to true for mplayer')
+	console.log('  -h              display this help')
+	return
+}
 
 const getRandomElement = array => array[Math.floor(Math.random() * array.length)]
+const getRandomPath = array => {
+	const kara = getRandomElement(array)
+	if (argv.v) {
+		console.log(kara.path)
+	}
+	return kara.path
+}
 
 const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'));
 const playlist = []
 
-let mplayer = new Mplayer({ verbose: true, debug: true });
+let mplayerOptions = { verbose: !!argv.debug, debug: !!argv.debug }
+if (argv.novideo) {
+	mplayerOptions['args'] = '-vo null'
+}
+let mplayer = new Mplayer(mplayerOptions);
 
-mplayer.openFile(getRandomElement(allContents).path);
-mplayer.on('stop', () => mplayer.openFile(getRandomElement(allContents).path))
+mplayer.openFile(getRandomPath(allContents));
+mplayer.on('stop', () => mplayer.openFile(getRandomPath(allContents)))
 
 let express = require('express');
 let app = express();
@@ -46,11 +67,12 @@ app.post('/request', (req, res) => {
 
 app.get('/playlist', (req, res) => res.json(playlist))
 
-let server = app.listen(3000, function () {
+const port = argv.p ? argv.p : 3000
+let server = app.listen(port, function () {
   let host = server.address().address;
   let port = server.address().port;
 
-  console.log('Example app listening at http://%s:%s', host, port);
+  console.log('Karakuni listening at http://%s:%s', host, port);
 });
 
 
