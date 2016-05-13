@@ -22,11 +22,12 @@ const argv = require('minimist')(process.argv.slice(2));
 
 if (argv.h || argv.help) {
 	console.log('usage: node player.js [options]\n')
-	console.log('  -p [PORT_ID]    sets the port used by the server')
-	console.log('  -novideo        play only audio')
-	console.log('  -v              display the path of played video')
-	console.log('  -debug          set verbose and debug to true for mplayer')
-	console.log('  -h              display this help')
+	console.log('  -p [PORT_ID]     sets the port used by the server')
+	console.log('  --novideo        play only audio')
+	console.log('  -l, --list       display the path of played video')
+	console.log('  -v, --verbose    make mplayer verbose')
+	console.log('  -d, --debug      debug mplayer')
+	console.log('  -h, --help       display this help')
 	return
 }
 
@@ -42,9 +43,9 @@ const getRandomPath = array => {
 const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'));
 const playlist = []
 
-let mplayerOptions = { verbose: !!argv.debug, debug: !!argv.debug }
+let mplayerOptions = { verbose: !!(argv.verbose || argv.v), debug: !!(argv.debug || argv.d) }
 if (argv.novideo) {
-	mplayerOptions['args'] = '-vo null'
+	mplayerOptions.args = '-vo null'
 }
 let mplayer = new Mplayer(mplayerOptions);
 
@@ -72,7 +73,7 @@ let server = app.listen(port, function () {
   let host = server.address().address;
   let port = server.address().port;
 
-  console.log('Karakuni listening at http://%s:%s', host, port);
+  console.log('Karakuri listening at http://%s:%s', host, port);
 });
 
 
