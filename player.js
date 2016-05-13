@@ -51,11 +51,13 @@ if (argv.novideo) {
 }
 let mplayer = new Mplayer(mplayerOptions);
 
-mplayer.openFile(getRandomPath(allContents));
-mplayer.on('stop', () => mplayer.openFile(getRandomPath(allContents)))
 
 let express = require('express');
 let app = express();
+const startPlayer = (mplayer, files) => {
+	mplayer.openFile(getRandomPath(files));
+	mplayer.on('stop', () => mplayer.openFile(getRandomPath(files)))
+}
 
 app.get('/contents', (req, res) => res.json(allContents));
 
@@ -76,6 +78,7 @@ let server = app.listen(port, function () {
   let port = server.address().port;
 
   console.log('Karakuri listening at http://%s:%s', host, port);
+  startPlayer(mplayer, allContents)
 });
 
 
