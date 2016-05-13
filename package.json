@@ -12,7 +12,8 @@
     "async": "^2.0.0-rc.3",
     "colors": "^1.1.2",
     "express": "^4.13.3",
-    "mplayer": "^2.0.1",
+    "minimist": "^1.2.0",
+    "mplayer": "^2.1.0",
     "prompt": "^1.0.0"
   }
 }

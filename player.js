@@ -16,22 +16,48 @@
 
 
 
-
 const Mplayer = require('mplayer');
 const fs = require('fs');
+const argv = require('minimist')(process.argv.slice(2));
+
+if (argv.h || argv.help) {
+	console.log('usage: node player.js [options]\n')
+	console.log('  -p [PORT_ID]     sets the port used by the server')
+	console.log('  --novideo        play only audio')
+	console.log('  -q, --quiet      enjoy the silence')
+	console.log('  -v, --verbose    make mplayer verbose')
+	console.log('  -d, --debug      debug mplayer')
+	console.log('  -h, --help       display this help')
+	return
+}
+
+if (argv.q || argv.quiet) {
+	console.log = () => {}
+}
 
 const getRandomElement = array => array[Math.floor(Math.random() * array.length)]
+const getRandomPath = array => {
+	const kara = getRandomElement(array)
+	console.log(kara.path)
+	return kara.path
+}
 
 const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'));
 const playlist = []
 
-let mplayer = new Mplayer({ verbose: true, debug: true });
+let mplayerOptions = { verbose: !!(argv.verbose || argv.v), debug: !!(argv.debug || argv.d) }
+if (argv.novideo) {
+	mplayerOptions.args = '-vo null'
+}
+let mplayer = new Mplayer(mplayerOptions);
 
-mplayer.openFile(getRandomElement(allContents).path);
-mplayer.on('stop', () => mplayer.openFile(getRandomElement(allContents).path))
 
 let express = require('express');
 let app = express();
+const startPlayer = (mplayer, files) => {
+	mplayer.openFile(getRandomPath(files));
+	mplayer.on('stop', () => mplayer.openFile(getRandomPath(files)))
+}
 
 app.get('/contents', (req, res) => res.json(allContents));
 
@@ -46,11 +72,13 @@ app.post('/request', (req, res) => {
 
 app.get('/playlist', (req, res) => res.json(playlist))
 
-let server = app.listen(3000, function () {
+const port = argv.p ? argv.p : 3000
+let server = app.listen(port, function () {
   let host = server.address().address;
   let port = server.address().port;
 
-  console.log('Example app listening at http://%s:%s', host, port);
+  console.log('Karakuri listening at http://%s:%s', host, port);
+  startPlayer(mplayer, allContents)
 });
 
 
