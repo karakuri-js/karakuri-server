@@ -24,19 +24,21 @@ if (argv.h || argv.help) {
 	console.log('usage: node player.js [options]\n')
 	console.log('  -p [PORT_ID]     sets the port used by the server')
 	console.log('  --novideo        play only audio')
-	console.log('  -l, --list       display the path of played video')
+	console.log('  -q, --quiet      enjoy the silence')
 	console.log('  -v, --verbose    make mplayer verbose')
 	console.log('  -d, --debug      debug mplayer')
 	console.log('  -h, --help       display this help')
 	return
 }
 
+if (argv.q || argv.quiet) {
+	console.log = () => {}
+}
+
 const getRandomElement = array => array[Math.floor(Math.random() * array.length)]
 const getRandomPath = array => {
 	const kara = getRandomElement(array)
-	if (argv.v) {
-		console.log(kara.path)
-	}
+	console.log(kara.path)
 	return kara.path
 }
 
