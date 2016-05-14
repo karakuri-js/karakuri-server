@@ -46,7 +46,7 @@ const askForSearch = (allContents) => {
       )
       console.log(`${index + 1}: ${coloredPath}`)
     })
-    askForKara(karaFound).then(askForSearch)
+    askForKara(karaFound).then(() => askForSearch(allContents))
   })
 }
 
