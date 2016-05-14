@@ -55,13 +55,26 @@ function createDataDir() {
   }
 }
 
-createDataDir()
+if (require.main === module) {
+  createDataDir()
 
-getDirectoryContents('./karaoke', (err, contents) => {
-  if (err) return console.error(err)
-
-  const allContents = contents
-    .filter(content => content.isVideo)
-    .map((element, id) => Object.assign({}, element, { id }))
-  fs.writeFileSync('./.data/allContents.json', JSON.stringify(allContents, null, 2))
-})
+  getDirectoryContents('./karaoke', (err, contents) => {
+    if (err) return console.error(err)
+    const allContents = contents
+      .filter(content => content.isVideo)
+      .map((element, id) => Object.assign({}, element, { id }))
+    fs.writeFileSync('./.data/allContents.json', JSON.stringify(allContents, null, 2))
+  })
+} else {
+  module.exports = {
+    getAllContents: () => new Promise((resolve, reject) => {
+      getDirectoryContents('./karaoke', (err, contents) => {
+        if (err) return reject(err)
+        const allContents = contents
+          .filter(content => content.isVideo)
+          .map((element, id) => Object.assign({}, element, { id }))
+        resolve(allContents)
+      })
+    }),
+  }
+}

@@ -1,9 +1,8 @@
 const { addToPlaylist } = require('./lib/smplayer')
-const fs = require('fs')
 const prompt = require('prompt')
 const chalk = require('chalk')
-
-const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
+const { getAllContents } = require('./localScrapper')
+const clear = require('cli-clear')
 
 const identity = thing => thing
 
@@ -14,8 +13,6 @@ const findKaras = (karaokes, regexes) => karaokes.reduce(
   },
   []
 )
-
-prompt.start()
 
 const askForKara = (choices) => new Promise(resolve => (
   prompt.get(['choice'], (err, res) => {
@@ -29,7 +26,8 @@ const askForKara = (choices) => new Promise(resolve => (
   })
 ))
 
-const askForSearch = () => {
+const askForSearch = (allContents) => {
+  clear()
   prompt.get(['search'], (err, res) => {
     const words = res.search.split(' ')
     const regexes = words.map(word => new RegExp(`(${word})`, 'ig'))
@@ -52,4 +50,11 @@ const askForSearch = () => {
   })
 }
 
-askForSearch()
+process.stdout.write('Loading data...')
+getAllContents()
+  .then(allContents => {
+    process.stdout.write('\r')
+    prompt.start()
+    askForSearch(allContents)
+  })
+  .catch(errors => console.warn(`\r${errors.message}`))
