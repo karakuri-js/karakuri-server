@@ -5,11 +5,11 @@ const chalk = require('chalk')
 
 const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
 
-const identity = a => a
+const identity = thing => thing
 
 const findKaras = (karaokes, regexes) => karaokes.reduce(
   (foundKaras, kara) => {
-    const regexRes = regexes.map(r => kara.fileName.match(r))
+    const regexRes = regexes.map(regex => kara.fileName.match(regex))
     return regexRes.every(identity) ? foundKaras.concat(kara) : foundKaras
   },
   []
@@ -32,7 +32,7 @@ const askForKara = (choices) => new Promise(resolve => (
 const askForSearch = () => {
   prompt.get(['search'], (err, res) => {
     const words = res.search.split(' ')
-    const regexes = words.map(w => new RegExp(`(${w})`, 'ig'))
+    const regexes = words.map(word => new RegExp(`(${word})`, 'ig'))
 
     const karaFound = findKaras(allContents, regexes)
     if (!karaFound.length) {
