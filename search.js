@@ -1,7 +1,7 @@
 const { addToPlaylist } = require('./lib/smplayer')
 const fs = require('fs')
 const prompt = require('prompt')
-require('colors')
+const chalk = require('chalk')
 
 const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
 
@@ -37,14 +37,13 @@ const askForSearch = () => {
     const karaFound = findKaras(allContents, regexes)
     if (!karaFound.length) {
       console.warn('No results')
-      askForSearch()
-      return
+      return askForSearch()
     }
 
     console.log('0: do nothing')
     karaFound.forEach(({ path }, index) => {
       const coloredPath = regexes.reduce(
-        (previous, regex) => previous.replace(regex, '\$1'.green),
+        (previous, regex) => previous.replace(regex, chalk.green('$1')),
         path
       )
       console.log(`${index + 1}: ${coloredPath}`)
