@@ -5,12 +5,12 @@ const chalk = require('chalk')
 
 const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
 
-const isTrue = b => b
+const identity = a => a
 
 const findKaras = (karaokes, regexes) => karaokes.reduce(
   (foundKaras, kara) => {
     const regexRes = regexes.map(r => kara.fileName.match(r))
-    return regexRes.every(isTrue) ? foundKaras.concat(kara) : foundKaras
+    return regexRes.every(identity) ? foundKaras.concat(kara) : foundKaras
   },
   []
 )
