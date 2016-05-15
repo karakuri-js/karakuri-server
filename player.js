@@ -1,71 +1,53 @@
-/*
- * TODO
- * App React Native prend une URL (ou IP, ou hostname)
- * Récupère liste contenus
- * Poste l'id dans la playlist
- * */
+const Mplayer = require('mplayer')
+const fs = require('fs')
+const argv = require('minimist')(process.argv.slice(2))
 
-
-
-
-
-
-
-
-
-
-
-
-const Mplayer = require('mplayer');
-const fs = require('fs');
-const argv = require('minimist')(process.argv.slice(2));
-
-if (argv.h || argv.help) {
-	console.log('usage: node player.js [options]\n')
-	console.log('  -p [PORT_ID]     sets the port used by the server')
-	console.log('  --novideo        play only audio')
-	console.log('  -q, --quiet      enjoy the silence')
-	console.log('  -v, --verbose    make mplayer verbose')
-	console.log('  -d, --debug      debug mplayer')
-	console.log('  -h, --help       display this help')
-	return
+if (argv.h || argv.help) {
+  console.log('usage: node player.js [options]\n')
+  console.log('  -p [PORT_ID]     sets the port used by the server')
+  console.log('  --novideo        play only audio')
+  console.log('  -q, --quiet      enjoy the silence')
+  console.log('  -v, --verbose    make mplayer verbose')
+  console.log('  -d, --debug      debug mplayer')
+  console.log('  -h, --help       display this help')
+  process.exit(1)
 }
 
-if (argv.q || argv.quiet) {
-	console.log = () => {}
+if (argv.q || argv.quiet) {
+  console.log = () => {}
 }
 
 const getRandomElement = array => array[Math.floor(Math.random() * array.length)]
 const getRandomPath = array => {
-	const kara = getRandomElement(array)
-	console.log(kara.path)
-	return kara.path
+  const kara = getRandomElement(array)
+  console.log(kara.path)
+  return kara.path
 }
 
-const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'));
+const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
 const playlist = []
 
-let mplayerOptions = { verbose: !!(argv.verbose || argv.v), debug: !!(argv.debug || argv.d) }
+const mplayerOptions = { verbose: !!(argv.verbose || argv.v), debug: !!(argv.debug || argv.d) }
 if (argv.novideo) {
-	mplayerOptions.args = '-vo null'
+  mplayerOptions.args = '-vo null'
 }
-let mplayer = new Mplayer(mplayerOptions);
+const mplayer = new Mplayer(mplayerOptions)
 
 
-let express = require('express');
-let app = express();
-const startPlayer = (mplayer, files) => {
-	mplayer.openFile(getRandomPath(files));
-	mplayer.on('stop', () => mplayer.openFile(getRandomPath(files)))
+const express = require('express')
+const app = express()
+const startPlayer = files => {
+  mplayer.openFile(getRandomPath(files))
+  mplayer.on('stop', () => mplayer.openFile(getRandomPath(files)))
 }
 
-app.get('/contents', (req, res) => res.json(allContents));
+app.get('/contents', (req, res) => res.json(allContents))
 
-app.post('/request', (req, res) => {
+app.post('/request', (req) => {
   const id = parseInt(req.body.id, 10)
-  const content = allContents.find(content => content.id === id)
+  const content = allContents.find(c => c.id === id)
   if (!content) return // res json error
-  const existingContent = playlist.find(content => content.id === id)
+  const existingContent = playlist.find(c => c.id === id)
   if (existingContent) return // res json error 2
   playlist.push(content)
 })
@@ -73,22 +55,20 @@ app.post('/request', (req, res) => {
 app.get('/playlist', (req, res) => res.json(playlist))
 
 const port = argv.p ? argv.p : 3000
-let server = app.listen(port, function () {
-  let host = server.address().address;
-  let port = server.address().port;
-
-  console.log('Karakuri listening at http://%s:%s', host, port);
-  startPlayer(mplayer, allContents)
-});
+const server = app.listen(port, () => {
+  const host = server.address().address
+  console.log('Karakuri listening at http://%s:%s', host, port)
+  startPlayer(allContents)
+})
 
 
-// let server = require('http').createServer(app);
-// let Primus = require('primus');
+// const server = require('http').createServer(app);
+// const Primus = require('primus');
 //
-// let primus = new Primus(server, { transformer: 'engine.io' });
+// const primus = new Primus(server, { transformer: 'engine.io' });
 //
 // // primus.on('connection', function connection(spark) {
-// //   let email = spark.request.user.email;
+// //   const email = spark.request.user.email;
 // //   spark.join(email);
 // // });
 //
