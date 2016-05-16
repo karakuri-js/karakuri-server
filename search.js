@@ -1,21 +1,18 @@
 const { addToPlaylist } = require('./lib/smplayer')
-const fs = require('fs')
 const prompt = require('prompt')
 const chalk = require('chalk')
+const { getAllContents } = require('./localScrapper')
+const clear = require('cli-clear')
 
-const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
-
-const isTrue = b => b
+const identity = thing => thing
 
 const findKaras = (karaokes, regexes) => karaokes.reduce(
   (foundKaras, kara) => {
-    const regexRes = regexes.map(r => kara.fileName.match(r))
-    return regexRes.every(isTrue) ? foundKaras.concat(kara) : foundKaras
+    const regexRes = regexes.map(regex => kara.fileName.match(regex))
+    return regexRes.every(identity) ? foundKaras.concat(kara) : foundKaras
   },
   []
 )
-
-prompt.start()
 
 const askForKara = (choices) => new Promise(resolve => (
   prompt.get(['choice'], (err, res) => {
@@ -29,10 +26,11 @@ const askForKara = (choices) => new Promise(resolve => (
   })
 ))
 
-const askForSearch = () => {
+const askForSearch = (allContents) => {
+  clear()
   prompt.get(['search'], (err, res) => {
     const words = res.search.split(' ')
-    const regexes = words.map(w => new RegExp(`(${w})`, 'ig'))
+    const regexes = words.map(word => new RegExp(`(${word})`, 'ig'))
 
     const karaFound = findKaras(allContents, regexes)
     if (!karaFound.length) {
@@ -48,8 +46,15 @@ const askForSearch = () => {
       )
       console.log(`${index + 1}: ${coloredPath}`)
     })
-    askForKara(karaFound).then(askForSearch)
+    askForKara(karaFound).then(() => askForSearch(allContents))
   })
 }
 
-askForSearch()
+process.stdout.write('Loading data...')
+getAllContents()
+  .then(allContents => {
+    process.stdout.write('\r')
+    prompt.start()
+    askForSearch(allContents)
+  })
+  .catch(errors => console.warn(`\r${errors.message}`))
