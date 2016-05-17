@@ -61,7 +61,6 @@ if (argv.random) {
         console.log(kara.path)
         player.openFile(kara.path)
       } else {
-        player.stop()
         player.fullscreen()
       }
     })
