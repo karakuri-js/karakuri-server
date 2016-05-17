@@ -1,10 +1,13 @@
 const Mplayer = require('mplayer')
 const fs = require('fs')
 const argv = require('minimist')(process.argv.slice(2))
+const express = require('express')
+const bodyParser = require('body-parser')
 
 if (argv.h || argv.help) {
   console.log('usage: node player.js [options]\n')
   console.log('  -p [PORT_ID]     sets the port used by the server')
+  console.log('  --random         only play karaokes at random without server')
   console.log('  --novideo        play only audio')
   console.log('  -q, --quiet      enjoy the silence')
   console.log('  -v, --verbose    make mplayer verbose')
@@ -27,39 +30,68 @@ const getRandomPath = array => {
 const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
 const playlist = []
 
-const mplayerOptions = { verbose: !!(argv.verbose || argv.v), debug: !!(argv.debug || argv.d) }
+const mplayerOptions = {
+  verbose: !!(argv.verbose || argv.v),
+  debug: !!(argv.debug || argv.d),
+  args: '-ass -vo gl_nosw -fixed-vo',
+}
 if (argv.novideo) {
-  mplayerOptions.args = '-vo null'
+  mplayerOptions.args += ' -vo null'
 }
 const mplayer = new Mplayer(mplayerOptions)
 
-
-const express = require('express')
-const app = express()
-const startPlayer = files => {
-  mplayer.openFile(getRandomPath(files))
-  mplayer.on('stop', () => mplayer.openFile(getRandomPath(files)))
+const startRandomPlayer = (player, files) => {
+  player.openFile(getRandomPath(files))
+  player.on('stop', () => player.openFile(getRandomPath(files)))
 }
 
-app.get('/contents', (req, res) => res.json(allContents))
+if (argv.random) {
+  startRandomPlayer(mplayer, allContents)
+} else {
+  const app = express()
+  app.use(bodyParser.json())
 
-app.post('/request', (req) => {
-  const id = parseInt(req.body.id, 10)
-  const content = allContents.find(c => c.id === id)
-  if (!content) return // res json error
-  const existingContent = playlist.find(c => c.id === id)
-  if (existingContent) return // res json error 2
-  playlist.push(content)
-})
+  const startPlayer = (player, files) => {
+    const firstKara = files.shift()
+    console.log(firstKara.path)
+    player.openFile(firstKara.path)
+    player.on('stop', () => {
+      if (files.length) {
+        const kara = files.shift()
+        console.log(kara.path)
+        player.openFile(kara.path)
+      } else {
+        player.fullscreen()
+      }
+    })
+  }
 
-app.get('/playlist', (req, res) => res.json(playlist))
+  app.get('/contents', (req, res) => res.json(allContents))
 
-const port = argv.p ? argv.p : 3000
-const server = app.listen(port, () => {
-  const host = server.address().address
-  console.log('Karakuri listening at http://%s:%s', host, port)
-  startPlayer(allContents)
-})
+  app.post('/request', (req, res) => {
+    const id = parseInt(req.body.id, 10)
+    const content = allContents.find(c => c.id === id)
+    if (!content) return // res json error
+    const existingContent = playlist.find(c => c.id === id)
+    if (existingContent) return res.send({ error: 'already exists' }) // json error 2
+    playlist.push(content)
+    res.send(`${content.fileName} has been added`)
+  })
+
+  app.get('/playlist', (req, res) => res.json(playlist))
+
+  app.get('/play', (req, res) => {
+    playlist.sort(() => 0.5 - Math.random())
+    res.send(playlist.map(file => file.fileName).join('\n'))
+    startPlayer(mplayer, playlist)
+  })
+
+  const port = argv.p ? argv.p : 3000
+  const server = app.listen(port, () => {
+    const host = server.address().address
+    console.log('Karakuri listening at http://%s:%s', host, port)
+  })
+}
 
 
 // const server = require('http').createServer(app);
