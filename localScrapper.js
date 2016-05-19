@@ -55,7 +55,7 @@ function createDataDir() {
   }
 }
 
-const getFormattedContent = new Promise((resolve, reject) => {
+const getFormattedContent = () => new Promise((resolve, reject) => {
   getDirectoryContents('./karaoke', (err, contents) => {
     if (err) return reject(err)
     const allContents = contents
