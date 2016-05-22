@@ -11,6 +11,7 @@ const {
   pause,
   initPlayer,
   isPlaying,
+  toggleShowPlayingFile,
 
 } = require('./lib/player')
 
@@ -44,6 +45,7 @@ if (argv.novideo) {
 initPlayer(mplayerOptions)
 
 if (argv.random) {
+  toggleShowPlayingFile()
   setPlaylist(allContents)
   randomizePlaylist()
   playNext()
