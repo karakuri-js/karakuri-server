@@ -1,5 +1,7 @@
 const fs = require('fs')
+const { networkInterfaces: getNetworkInterfaces } = require('os')
 const argv = require('minimist')(process.argv.slice(2))
+const chalk = require('chalk')
 const express = require('express')
 const bodyParser = require('body-parser')
 const {
@@ -78,8 +80,16 @@ if (argv.random) {
   })
 
   const port = argv.p ? argv.p : 3000
-  const server = app.listen(port, () => {
-    const host = server.address().address
-    console.log('Karakuri listening at http://%s:%s', host, port)
+  app.listen(port, () => {
+    const networkInterfaces = getNetworkInterfaces()
+    const addresses = Object.keys(networkInterfaces).reduce((array, interfaceName) => (
+      array.concat(...networkInterfaces[interfaceName])
+    ), [])
+      .filter(element => !element.internal && element.family === 'IPv4')
+      .map(element => element.address)
+
+    console.log('Karakuri listening at')
+    addresses.forEach(address => console.log(chalk.bold(address)))
+    console.log(`on port ${chalk.bold(port)}`)
   })
 }
