@@ -2,6 +2,7 @@ const fs = require('fs')
 const argv = require('minimist')(process.argv.slice(2))
 const express = require('express')
 const bodyParser = require('body-parser')
+const player = require('./lib/player')
 const {
   setPlaylist,
   addToPlaylist,
@@ -10,9 +11,7 @@ const {
   playNext,
   pause,
   initPlayer,
-  isPlaying,
-
-} = require('./lib/player')
+} = player
 
 if (argv.h || argv.help) {
   console.log('usage: node player.js [options]\n')
@@ -60,7 +59,7 @@ if (argv.random) {
     const existingContent = getPlaylist().find(c => c.id === id)
     if (existingContent) return res.send({ message: `${content.fileName} is already in playlist` })
     addToPlaylist(content)
-    if (!isPlaying) playNext()
+    if (!player.isPlaying) playNext()
     res.send(`${content.fileName} has been added`)
   })
 
