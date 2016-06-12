@@ -55,12 +55,12 @@ if (argv.random) {
   app.post('/request', (req, res) => {
     const id = parseInt(req.body.id, 10)
     const content = allContents.find(c => c.id === id)
-    if (!content) return res.status(404).json({ error: 'Not found' })
+    if (!content) return res.status(404).json({ message: 'Not found' })
     const existingContent = getPlaylist().find(c => c.id === id)
     if (existingContent) return res.send({ message: `${content.fileName} is already in playlist` })
     addToPlaylist(content)
     if (!player.isPlaying) playNext()
-    res.send(`${content.fileName} has been added`)
+    res.send({ message: `${content.fileName} has been added` })
   })
 
   app.get('/playlist', (req, res) => res.json(getPlaylist()))
