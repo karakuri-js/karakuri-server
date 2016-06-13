@@ -7,6 +7,7 @@ const {
   setPlaylist,
   addToPlaylist,
   savePlaylist,
+  loadPlaylist,
   randomizePlaylist,
   getPlaylist,
   playNext,
@@ -19,6 +20,7 @@ if (argv.h || argv.help) {
   console.log('  -p [PORT_ID]     sets the port used by the server')
   console.log('  --random         only play karaokes at random without server')
   console.log('  --novideo        play only audio')
+  console.log('  -l  --load       load a playlist')
   console.log('  -q, --quiet      enjoy the silence')
   console.log('  -v, --verbose    make mplayer verbose')
   console.log('  -d, --debug      debug mplayer')
@@ -50,6 +52,11 @@ if (argv.random) {
 } else {
   const app = express()
   app.use(bodyParser.json())
+
+  if (argv.l || argv.load) {
+    loadPlaylist(argv.l || argv.load, allContents)
+    playNext()
+  }
 
   app.get('/contents', (req, res) => res.json(allContents))
 
