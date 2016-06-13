@@ -6,6 +6,7 @@ const player = require('./lib/player')
 const {
   setPlaylist,
   addToPlaylist,
+  savePlaylist,
   randomizePlaylist,
   getPlaylist,
   playNext,
@@ -59,6 +60,7 @@ if (argv.random) {
     const existingContent = getPlaylist().find(c => c.id === id)
     if (existingContent) return res.send({ message: `${content.fileName} is already in playlist` })
     addToPlaylist(content)
+    savePlaylist()
     if (!player.isPlaying) playNext()
     res.send(`${content.fileName} has been added`)
   })
