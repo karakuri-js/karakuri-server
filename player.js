@@ -8,6 +8,8 @@ const player = require('./lib/player')
 const {
   setPlaylist,
   addToPlaylist,
+  savePlaylist,
+  loadPlaylist,
   randomizePlaylist,
   getPlaylist,
   playNext,
@@ -20,6 +22,7 @@ if (argv.h || argv.help) {
   console.log('  -p [PORT_ID]     sets the port used by the server')
   console.log('  --random         only play karaokes at random without server')
   console.log('  --novideo        play only audio')
+  console.log('  -l  --load       load a playlist')
   console.log('  -q, --quiet      enjoy the silence')
   console.log('  -v, --verbose    make mplayer verbose')
   console.log('  -d, --debug      debug mplayer')
@@ -52,6 +55,11 @@ if (argv.random) {
   const app = express()
   app.use(bodyParser.json())
 
+  if (argv.l || argv.load) {
+    loadPlaylist(argv.l || argv.load, allContents)
+    playNext()
+  }
+
   app.get('/contents', (req, res) => res.json(allContents))
 
   app.post('/request', (req, res) => {
@@ -61,6 +69,7 @@ if (argv.random) {
     const existingContent = getPlaylist().find(c => c.id === id)
     if (existingContent) return res.send({ message: `${content.fileName} is already in playlist` })
     addToPlaylist(content)
+    savePlaylist()
     if (!player.isPlaying) playNext()
     res.send({ message: `${content.fileName} has been added` })
   })
