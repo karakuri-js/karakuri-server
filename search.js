@@ -1,18 +1,9 @@
 const { addToPlaylist } = require('./lib/smplayer')
 const prompt = require('prompt')
 const chalk = require('chalk')
-const { getAllContents } = require('./localScrapper')
+const getFormattedContent = require('./localScrapper')
 const clear = require('cli-clear')
-
-const identity = thing => thing
-
-const findKaras = (karaokes, regexes) => karaokes.reduce(
-  (foundKaras, kara) => {
-    const regexRes = regexes.map(regex => kara.fileName.match(regex))
-    return regexRes.every(identity) ? foundKaras.concat(kara) : foundKaras
-  },
-  []
-)
+const fuzzySearch = require('./lib/fuzzySearch')
 
 const askForKara = (choices) => new Promise(resolve => (
   prompt.get(['choice'], (err, res) => {
@@ -29,13 +20,10 @@ const askForKara = (choices) => new Promise(resolve => (
 const askForSearch = (allContents) => {
   clear()
   prompt.get(['search'], (err, res) => {
-    const words = res.search.split(' ')
-    const regexes = words.map(word => new RegExp(`(${word})`, 'ig'))
-
-    const karaFound = findKaras(allContents, regexes)
+    const { result: karaFound, regexes } = fuzzySearch(allContents, res.search, 'fileName')
     if (!karaFound.length) {
       console.warn('No results')
-      return askForSearch()
+      return askForSearch(allContents)
     }
 
     console.log('0: do nothing')
@@ -51,7 +39,7 @@ const askForSearch = (allContents) => {
 }
 
 process.stdout.write('Loading data...')
-getAllContents()
+getFormattedContent()
   .then(allContents => {
     process.stdout.write('\r')
     prompt.start()
