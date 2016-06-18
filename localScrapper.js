@@ -2,7 +2,7 @@ const fs = require('fs')
 const async = require('async')
 
 const isVideoExtension = extension => [
-  'mp4', 'flv', 'avi', 'webm', 'mkv', 'wmv',
+  '3gp', 'mp4', 'flv', 'avi', 'webm', 'mkv', 'wmv',
 ].indexOf(extension.toLowerCase()) !== -1
 
 function getFileInfos(fileName, dirPath, stat) {
