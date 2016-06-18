@@ -35,7 +35,6 @@ if (argv.q || argv.quiet) {
 }
 
 const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
-const playlist = []
 
 const mplayerOptions = {
   verbose: !!(argv.verbose || argv.v),
@@ -75,12 +74,6 @@ if (argv.random) {
   })
 
   app.get('/playlist', (req, res) => res.json(getPlaylist()))
-
-  app.get('/play', (req, res) => {
-    randomizePlaylist()
-    res.send(playlist.map(file => file.fileName).join('\n'))
-    playNext()
-  })
 
   app.get('/pause', (req, res) => {
     pause()
