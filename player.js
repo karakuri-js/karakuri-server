@@ -35,7 +35,6 @@ if (argv.q || argv.quiet) {
 }
 
 const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
-const playlist = []
 
 const mplayerOptions = {
   verbose: !!(argv.verbose || argv.v),
@@ -67,7 +66,9 @@ if (argv.random) {
     const content = allContents.find(c => c.id === id)
     if (!content) return res.status(404).json({ message: 'Not found' })
     const existingContent = getPlaylist().find(c => c.id === id)
-    if (existingContent) return res.send({ message: `${content.fileName} is already in playlist` })
+    if (existingContent && !existingContent.played) {
+      return res.send({ message: `${content.fileName} is already in playlist` })
+    }
     addToPlaylist(content)
     savePlaylist()
     if (!player.isPlaying) playNext()
@@ -76,15 +77,15 @@ if (argv.random) {
 
   app.get('/playlist', (req, res) => res.json(getPlaylist()))
 
-  app.get('/play', (req, res) => {
-    randomizePlaylist()
-    res.send(playlist.map(file => file.fileName).join('\n'))
-    playNext()
-  })
-
   app.get('/pause', (req, res) => {
     pause()
     res.send()
+  })
+
+  // TODO when the app will handle this, change to app.post
+  app.all('/randomize', (req, res) => {
+    randomizePlaylist()
+    res.send({ message: 'randomized' })
   })
 
   const port = argv.p ? argv.p : 3000
