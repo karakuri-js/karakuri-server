@@ -87,6 +87,12 @@ if (argv.random) {
     res.send()
   })
 
+  // TODO when the app will handle this, change to app.post
+  app.all('/randomize', (req, res) => {
+    randomizePlaylist()
+    res.send({ message: 'randomized' })
+  })
+
   const port = argv.p ? argv.p : 3000
   app.listen(port, () => {
     const networkInterfaces = getNetworkInterfaces()
