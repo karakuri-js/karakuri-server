@@ -66,7 +66,9 @@ if (argv.random) {
     const content = allContents.find(c => c.id === id)
     if (!content) return res.status(404).json({ message: 'Not found' })
     const existingContent = getPlaylist().find(c => c.id === id)
-    if (existingContent) return res.send({ message: `${content.fileName} is already in playlist` })
+    if (existingContent && !existingContent.played) {
+      return res.send({ message: `${content.fileName} is already in playlist` })
+    }
     addToPlaylist(content)
     savePlaylist()
     if (!player.isPlaying) playNext()
