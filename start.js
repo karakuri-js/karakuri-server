@@ -1,5 +1,6 @@
 const fs = require('fs')
 const argv = require('minimist')(process.argv.slice(2))
+const [width, height] = require('screenres').get()
 const player = require('./lib/player')
 const {
   setPlaylist,
@@ -31,7 +32,8 @@ const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
 const mplayerOptions = {
   verbose: !!(argv.verbose || argv.v),
   debug: !!(argv.debug || argv.d),
-  args: '-ass -vo gl_nosw -fixed-vo',
+  args: '-ass -fixed-vo' +
+        ` -vf scale=${width}:-3:::0.00:0.75,expand=:${height},scale,ass`,
 }
 if (argv.novideo) {
   mplayerOptions.args += ' -vo null'
