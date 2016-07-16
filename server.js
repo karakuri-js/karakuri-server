@@ -33,13 +33,14 @@ module.exports = ({ contents, port }) => {
 
   app.post('/request', (req, res) => {
     const id = parseInt(req.body.id, 10)
+    const username = req.body.username || ''
     const content = contents.find(c => c.id === id)
     if (!content) return res.status(404).json({ message: 'Not found' })
     const existingContent = getFuturePlaylist().find(c => c.id === id)
     if (existingContent) {
       return res.send({ message: `${content.fileName} is already in playlist` })
     }
-    addToPlaylist(content)
+    addToPlaylist({ content, username })
     savePlaylist()
     notifyPlaylist(getFuturePlaylist())
     if (!player.isPlaying) playNext()
