@@ -8,7 +8,7 @@ const isVideoExtension = extension => [
 function getFileInfos(fileName, dirPath, stat) {
   const lastIndexOfSlash = dirPath.lastIndexOf('/')
   const dirName = lastIndexOfSlash !== -1 ? dirPath.substr(lastIndexOfSlash + 1) : '.'
-  const fileNamePatterns = fileName.match(/^(.+) - ([A-Za-z0-9 ]+) - (.+)\.(.{2,4})$/i) || []
+  const fileNamePatterns = fileName.match(/^(.+) - ([A-Z0-9 ]+) - (.+)\.(.{2,4})$/) || []
   const [, group, type, songName, extension] = fileNamePatterns
   const isVideo = extension ? isVideoExtension(extension) : false
 
