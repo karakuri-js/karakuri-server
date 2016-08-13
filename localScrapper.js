@@ -1,5 +1,6 @@
 const fs = require('fs')
 const async = require('async')
+const { omit } = require('lodash')
 
 const isVideoExtension = extension => [
   '3gp', 'mp4', 'flv', 'avi', 'webm', 'mkv', 'wmv',
@@ -60,7 +61,10 @@ const getFormattedContent = () => new Promise((resolve, reject) => {
     if (err) return reject(err)
     const allContents = contents
       .filter(content => content.isVideo)
-      .map((element, id) => Object.assign({}, element, { id }))
+      .map((element, id) => Object.assign(
+        omit(element, ['isDir', 'isFile', 'isVideo']),
+        { id }
+      ))
     resolve(allContents)
   })
 })
