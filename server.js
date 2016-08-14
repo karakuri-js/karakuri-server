@@ -16,7 +16,7 @@ const { start: startWSServer, notifyPlaylist } = require('./lib/websockets')
 const {
   addToPlaylist,
   savePlaylist,
-  randomizePlaylist,
+  randomizeUserPlaylist,
   getFuturePlaylist,
   playNext,
   pause,
@@ -55,9 +55,11 @@ module.exports = ({ contents, port }) => {
   })
 
   // TODO when the app will handle this, change to app.post
-  app.all('/randomize', (req, res) => {
-    randomizePlaylist()
-    res.send({ message: 'randomized' })
+  app.post('/randomize', (req, res) => {
+    if (!req.body.username) return res.status(404).json({ message: 'Missing username' })
+    randomizeUserPlaylist(req.body.username)
+    notifyPlaylist(getFuturePlaylist())
+    res.send({ message: 'Randomized' })
   })
 
   server.on('request', app)
