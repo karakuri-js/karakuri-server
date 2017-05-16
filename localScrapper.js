@@ -3,7 +3,7 @@ const async = require('async')
 const { omit } = require('lodash')
 
 const isVideoExtension = extension => [
-  '3gp', 'mp4', 'flv', 'avi', 'webm', 'mkv', 'wmv',
+  '3gp', 'mp4', 'flv', 'avi', 'webm', 'mkv', 'wmv', 'mpg',
 ].indexOf(extension.toLowerCase()) !== -1
 
 function getFileInfos(fileName, dirPath, stat) {
