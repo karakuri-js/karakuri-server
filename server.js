@@ -62,6 +62,8 @@ module.exports = ({ contents, port }) => {
     res.send({ message: 'Randomized' })
   })
 
+  app.get('/ping', (_, res) => res.send('pong'))
+
   server.on('request', app)
   server.listen(port, () => {
     console.log('Karakuri listening at')
