@@ -2,16 +2,31 @@ const fs = require('fs')
 const async = require('async')
 const { omit } = require('lodash')
 
+const REGEX_WITH_LANGUAGE = /^(.+) - ([A-Z0-9 ]+) - (.+) ?(\(.{3}\))\.(.{2,4})$/
+const REGEX_WITHOUT_LANGUAGE = /^(.+) - ([A-Z0-9 ]+) - (.+)\.(.{2,4})$/
+
 const isVideoExtension = extension => [
   '3gp', 'mp4', 'flv', 'avi', 'webm', 'mkv', 'wmv', 'mpg',
 ].indexOf(extension.toLowerCase()) !== -1
 
 function getFileInfos(fileName, dirPath, stat) {
+  let group
+  let type
+  let songName
+  let languageString
+  let extension
+
   const lastIndexOfSlash = dirPath.lastIndexOf('/')
   const dirName = lastIndexOfSlash !== -1 ? dirPath.substr(lastIndexOfSlash + 1) : '.'
-  const fileNamePatterns = fileName.match(/^(.+) - ([A-Z0-9 ]+) - (.+)\.(.{2,4})$/) || []
-  const [, group, type, songName, extension] = fileNamePatterns
+  const fileNamePatterns = fileName.match(REGEX_WITH_LANGUAGE) || []
+
+  if (fileNamePatterns.length) {
+    [, group, type, songName, languageString, extension] = fileNamePatterns
+  } else {
+    [, group, type, songName, extension] = fileName.match(REGEX_WITHOUT_LANGUAGE) || []
+  }
   const isVideo = extension ? isVideoExtension(extension) : false
+  const language = languageString && languageString.slice(1, languageString.length - 1)
 
   return {
     path: `${dirPath}/${fileName}`,
@@ -20,6 +35,7 @@ function getFileInfos(fileName, dirPath, stat) {
     type,
     group,
     songName,
+    language,
     isDir: stat.isDirectory(),
     isFile: stat.isFile(),
     isVideo,
