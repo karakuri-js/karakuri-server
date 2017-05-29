@@ -32,7 +32,7 @@ module.exports = ({ contents, port }) => {
   app.get('/contents', (req, res) => res.json(contents))
 
   app.post('/request', (req, res) => {
-    const id = parseInt(req.body.id, 10)
+    const id = (req.body.id || '').toString()
     const username = req.body.username || ''
     const content = contents.find(c => c.id === id)
     if (!content) return res.status(404).json({ message: 'Not found' })
