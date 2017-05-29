@@ -1,6 +1,6 @@
 const fs = require('fs')
 const async = require('async')
-const { omit } = require('lodash')
+const { kebabCase, omit } = require('lodash')
 
 const REGEX_WITH_LANGUAGE = /^(.+) - ([A-Z0-9 ]+) - (.+) ?(\(.{3}\))\.(.{2,4})$/
 const REGEX_WITHOUT_LANGUAGE = /^(.+) - ([A-Z0-9 ]+) - (.+)\.(.{2,4})$/
@@ -27,9 +27,11 @@ function getFileInfos(fileName, dirPath, stat) {
   }
   const isVideo = extension ? isVideoExtension(extension) : false
   const language = languageString && languageString.slice(1, languageString.length - 1)
+  const path = `${dirPath}/${fileName}`
 
   return {
-    path: `${dirPath}/${fileName}`,
+    id: kebabCase(path),
+    path,
     dirName,
     fileName,
     type,
@@ -77,10 +79,7 @@ const getFormattedContent = () => new Promise((resolve, reject) => {
     if (err) return reject(err)
     const allContents = contents
       .filter(content => content.isVideo)
-      .map((element, id) => Object.assign(
-        omit(element, ['isDir', 'isFile', 'isVideo']),
-        { id }
-      ))
+      .map((element) => omit(element, ['isDir', 'isFile', 'isVideo']))
     resolve(allContents)
   })
 })
