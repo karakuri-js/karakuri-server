@@ -15,9 +15,8 @@ const player = require('./lib/player')
 const { start: startWSServer, notifyPlaylist } = require('./lib/websockets')
 const {
   addToPlaylist,
-  savePlaylist,
   randomizeUserPlaylist,
-  getFuturePlaylist,
+  getPlaylist,
   playNext,
   pause,
 } = player
@@ -36,18 +35,18 @@ module.exports = ({ contents, port }) => {
     const username = req.body.username || ''
     const content = contents.find(c => c.id === id)
     if (!content) return res.status(404).json({ message: 'Not found' })
-    const existingContent = getFuturePlaylist().find(c => c.id === id)
+    const existingContent = getPlaylist().playlistContents.find(c => c.id === id)
     if (existingContent) {
       return res.send({ message: `${content.fileName} is already in playlist` })
     }
     addToPlaylist({ content, username })
-    savePlaylist()
-    notifyPlaylist(getFuturePlaylist())
-    if (!player.isPlaying) playNext()
+    const updatedPlaylist = getPlaylist()
+    notifyPlaylist(updatedPlaylist)
+    if (!updatedPlaylist.playing) playNext()
     res.send({ message: `${content.fileName} has been added` })
   })
 
-  app.get('/playlist', (req, res) => res.json(getFuturePlaylist()))
+  app.get('/playlist', (req, res) => res.json(getPlaylist()))
 
   app.get('/pause', (req, res) => {
     pause()
@@ -58,7 +57,7 @@ module.exports = ({ contents, port }) => {
   app.post('/randomize', (req, res) => {
     if (!req.body.username) return res.status(404).json({ message: 'Missing username' })
     randomizeUserPlaylist(req.body.username)
-    notifyPlaylist(getFuturePlaylist())
+    notifyPlaylist(getPlaylist())
     res.send({ message: 'Randomized' })
   })
 
