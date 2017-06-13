@@ -2,7 +2,7 @@ const fs = require('fs')
 const async = require('async')
 const { kebabCase, omit } = require('lodash')
 
-const REGEX_WITH_LANGUAGE = /^(.+) - ([A-Z0-9 ]+) - (.+) ?(\(.{3}\))\.(.{2,4})$/
+const REGEX_WITH_LANGUAGE = /^(.+) - ([A-Z0-9 ]+) - (.+) ? (\(.{3}\))\.(.{2,4})$/
 const REGEX_WITHOUT_LANGUAGE = /^(.+) - ([A-Z0-9 ]+) - (.+)\.(.{2,4})$/
 
 const isVideoExtension = extension => [
