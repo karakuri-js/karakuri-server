@@ -35,8 +35,9 @@ module.exports = ({ contents, port }) => {
     const username = req.body.username || ''
     const content = contents.find(c => c.id === id)
     if (!content) return res.status(404).json({ message: 'Not found' })
-    const existingContent = getPlaylist().playlistContents.find(c => c.id === id)
-    if (existingContent) {
+    const { playlistContents, playingContent } = getPlaylist()
+    const existingContentInPlaylist = playlistContents.find(c => c.id === id)
+    if (existingContentInPlaylist || (playingContent || {}).id === id) {
       return res.send({ message: `${content.fileName} is already in playlist` })
     }
     addToPlaylist({ content, username })
