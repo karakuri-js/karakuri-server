@@ -3,6 +3,13 @@ const async = require('async')
 const { kebabCase, last, omit } = require('lodash')
 const argv = require('minimist')(process.argv.slice(2))
 
+if (argv.h || argv.help) {
+  console.log('usage: node localScrapper.js [options]\n')
+  console.log('  --directory      Base directory to scrap (default : ./karaoke)')
+  console.log('  --useSubDirs     Use sub directories instead of grouping by topmost directories')
+  process.exit(1)
+}
+
 const karaokeDirectory = argv.directory || 'karaoke'
 const groupBySubdirectories = !!argv.useSubDirs
 
