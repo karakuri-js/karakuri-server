@@ -1,6 +1,10 @@
 const fs = require('fs')
 const async = require('async')
-const { kebabCase, omit } = require('lodash')
+const { kebabCase, last, omit } = require('lodash')
+const argv = require('minimist')(process.argv.slice(2))
+
+const karaokeDirectory = argv.directory || 'karaoke'
+const groupBySubdirectories = !!argv.useSubDirs
 
 const REGEX_WITH_LANGUAGE = /^(.+) - ([A-Z0-9 ]+) - (.+) ?(\(.{3}\))\.(.{2,4})$/
 const REGEX_WITHOUT_LANGUAGE = /^(.+) - ([A-Z0-9 ]+) - (.+)\.(.{2,4})$/
@@ -16,8 +20,15 @@ function getFileInfos(fileName, dirPath, stat) {
   let languageString
   let extension
 
-  const lastIndexOfSlash = dirPath.lastIndexOf('/')
-  const dirName = lastIndexOfSlash !== -1 ? dirPath.substr(lastIndexOfSlash + 1) : '.'
+  const directories = dirPath.split('/')
+  // Group by subdirectories : Take the name of the last directory (/karaoke/TEMP/Anime >> Anime)
+  // Group by top directory : Take the name of the topmost directory, excluding the base one :
+  //   /karaoke/TEMP/Anime >> TEMP
+  //   if anything is in the top directory, it will be indexed as such.
+  const dirName = groupBySubdirectories ?
+      last(directories) :
+      (directories[1] || directories[0])
+
   const fileNamePatterns = fileName.match(REGEX_WITH_LANGUAGE) || []
 
   if (fileNamePatterns.length) {
@@ -75,7 +86,7 @@ function createDataDir() {
 }
 
 const getFormattedContent = () => new Promise((resolve, reject) => {
-  getDirectoryContents('./karaoke', (err, contents) => {
+  getDirectoryContents(karaokeDirectory, (err, contents) => {
     if (err) return reject(err)
     const allContents = contents
       .filter(content => content.isVideo)
