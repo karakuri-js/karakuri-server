@@ -12,6 +12,7 @@ const addresses = Object.keys(networkInterfaces)
   .map(element => element.address)
 
 const player = require('./lib/player')
+const { getLyricsFromFile } = require('./lib/getLyrics')
 const { start: startWSServer, notifyPlaylist } = require('./lib/websockets')
 const {
   addToPlaylist,
@@ -20,6 +21,7 @@ const {
   playNext,
   pause,
 } = player
+
 
 module.exports = ({ contents, port }) => {
   const server = createServer()
@@ -60,6 +62,16 @@ module.exports = ({ contents, port }) => {
     randomizeUserPlaylist(req.body.username)
     notifyPlaylist(getPlaylist())
     res.send({ message: 'Randomized' })
+  })
+
+  app.get('/contents/:id', (req, res) => {
+    if (!req.params.id) return res.status(404).json({ message: 'Missing song id' })
+    const content = contents.find(c => c.id === req.params.id)
+    if (!content) return res.status(404).json({ message: 'Content ' + req.params.id + ' is unavailable' })
+    res.json(Object.assign(
+      content,
+      { lyrics: content.subtitles ? getLyricsFromFile(content.subtitles) : [] }
+    ))
   })
 
   app.get('/ping', (_, res) => res.send('pong'))

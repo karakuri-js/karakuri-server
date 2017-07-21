@@ -1,6 +1,6 @@
 const fs = require('fs')
 const async = require('async')
-const { kebabCase, last, omit } = require('lodash')
+const { chain, kebabCase, last, omit } = require('lodash')
 const argv = require('minimist')(process.argv.slice(2))
 
 if (argv.h || argv.help) {
@@ -18,7 +18,8 @@ const REGEX_WITHOUT_LANGUAGE = /^(.+) - ([A-Z0-9 ]+) - (.+)\.(.{2,4})$/
 
 const isVideoExtension = extension => [
   '3gp', 'mp4', 'flv', 'avi', 'webm', 'mkv', 'wmv', 'mpg',
-].indexOf(extension.toLowerCase()) !== -1
+].includes(extension.toLowerCase())
+const isSubtitlesExtension = extension => ['ass', 'ssa'].includes(extension.toLowerCase())
 
 function getFileInfos(fileName, dirPath, stat) {
   let group
@@ -44,12 +45,16 @@ function getFileInfos(fileName, dirPath, stat) {
     [, group, type, songName, extension] = fileName.match(REGEX_WITHOUT_LANGUAGE) || []
   }
   const isVideo = extension ? isVideoExtension(extension) : false
+  const isSubtitles = extension ? isSubtitlesExtension(extension) : false
   const language = languageString && languageString.slice(1, languageString.length - 1)
   const path = `${dirPath}/${fileName}`
+  // Used to match together videos and their subtitles
+  const pathWithoutExtension = path.substr(path, path.lastIndexOf('.'))
 
   return {
     id: kebabCase(path),
     path,
+    pathWithoutExtension,
     dirName,
     fileName,
     type,
@@ -57,8 +62,8 @@ function getFileInfos(fileName, dirPath, stat) {
     songName,
     language,
     isDir: stat.isDirectory(),
-    isFile: stat.isFile(),
     isVideo,
+    isSubtitles,
   }
 }
 
@@ -95,10 +100,20 @@ function createDataDir() {
 const getFormattedContent = () => new Promise((resolve, reject) => {
   getDirectoryContents(karaokeDirectory, (err, contents) => {
     if (err) return reject(err)
-    const allContents = contents
-      .filter(content => content.isVideo)
-      .map((element) => omit(element, ['isDir', 'isFile', 'isVideo']))
-    resolve(allContents)
+
+    const videoContents = chain(contents)
+      .groupBy('pathWithoutExtension')
+      .mapValues(([content1 = {}, content2 = {}]) => {
+        const videoContent = [content1, content2].find(({ isVideo }) => isVideo) || {}
+        const subtitlesContent = [content1, content2].find(({ isSubtitles }) => isSubtitles) || {}
+        return omit(
+          Object.assign(videoContent, { subtitles: subtitlesContent.path }),
+          ['isDir', 'isVideo', 'isSubtitles', 'pathWithoutExtension']
+        )
+      })
+      .filter(content => content.id)
+
+    resolve(videoContents)
   })
 })
 
