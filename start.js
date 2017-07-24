@@ -3,12 +3,13 @@ const argv = require('minimist')(process.argv.slice(2))
 const [width, height] = require('screenres').get()
 const player = require('./lib/player')
 const {
-  setPlaylist,
-  randomizePlaylist,
+  addToPlaylist,
   loadPlaylist,
+  randomizeUserPlaylist,
   playNext,
   initPlayer,
 } = player
+const CONSOLE_USERNAME = 'console'
 
 if (argv.h || argv.help) {
   console.log('usage: node player.js [options]\n')
@@ -41,8 +42,10 @@ if (argv.novideo) {
 initPlayer(mplayerOptions)
 
 if (argv.random) {
-  setPlaylist(allContents)
-  randomizePlaylist()
+  allContents.forEach(
+    content => addToPlaylist({ content, username: CONSOLE_USERNAME })
+  )
+  randomizeUserPlaylist(CONSOLE_USERNAME)
   playNext()
 } else {
   if (argv.l || argv.load) {
