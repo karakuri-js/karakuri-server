@@ -1,6 +1,5 @@
 const fs = require('fs')
-const async = require('async')
-const { chain, kebabCase, last, omit } = require('lodash')
+const { chain, flatten, kebabCase, last, omit } = require('lodash')
 const argv = require('minimist')(process.argv.slice(2))
 
 if (argv.h || argv.help) {
@@ -67,27 +66,31 @@ function getFileInfos(fileName, dirPath, stat) {
   }
 }
 
-// Gets the directory contents as a big array
-function getDirectoryContents(dirPath, callback) {
-  fs.readdir(dirPath, (err, filesList) => {
-    if (err) return callback(err)
-    async.map(filesList, (fileName, cbMap) => {
+const getFileListInfos = (filesList, dirPath) => Promise.all(
+  filesList.map(
+    fileName => new Promise((resolve, reject) => (
       fs.stat(`${dirPath}/${fileName}`, (err, stat) => {
-        if (err) return cbMap(err)
-        cbMap(null, getFileInfos(fileName, dirPath, stat))
+        if (err) return reject(err)
+
+        return resolve(getFileInfos(fileName, dirPath, stat))
       })
-    }, (err, results) => {
-      if (err) return callback(err)
-      async.reduce(results, [], (previous, result, cbReduce) => {
-        if (!result.isDir) return cbReduce(null, previous.concat(result))
-        getDirectoryContents(result.path, (err, results) => {
-          if (err) return cbReduce(err)
-          return cbReduce(null, previous.concat(results))
-        })
-      }, callback)
-    })
+    ))
+  )
+)
+
+const getDirectoryContents = dirPath => new Promise((resolve, reject) => (
+  fs.readdir(dirPath, (err, filesList) => {
+    if (err) return reject(err)
+
+    return getFileListInfos(filesList, dirPath)
+    .then(results => Promise.all(
+      results.map(
+        result => (result.isDir ? getDirectoryContents(result.path) : Promise.resolve(result))
+      )
+    ))
+    .then(results => resolve(flatten(results)))
   })
-}
+))
 
 function createDataDir() {
   try {
@@ -97,10 +100,8 @@ function createDataDir() {
   }
 }
 
-const getFormattedContent = () => new Promise((resolve, reject) => {
-  getDirectoryContents(karaokeDirectory, (err, contents) => {
-    if (err) return reject(err)
-
+const getFormattedContent = () => (
+  getDirectoryContents(karaokeDirectory).then(contents => {
     const videoContents = chain(contents)
       .groupBy('pathWithoutExtension')
       .mapValues(([content1 = {}, content2 = {}]) => {
@@ -113,16 +114,19 @@ const getFormattedContent = () => new Promise((resolve, reject) => {
       })
       .filter(content => content.id)
 
-    resolve(videoContents)
+    return videoContents
   })
-})
+)
 
 if (require.main === module) {
   createDataDir()
   getFormattedContent()
     .then(allContents =>
       fs.writeFileSync('./.data/allContents.json', JSON.stringify(allContents, null, 2)))
-    .catch(err => console.error(err))
+    .catch(error => {
+      console.error(error)
+      process.exit(1)
+    })
 } else {
   module.exports = getFormattedContent
 }
