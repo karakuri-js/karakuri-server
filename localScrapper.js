@@ -113,6 +113,7 @@ const getFormattedContent = () => (
         )
       })
       .filter(content => content.id)
+      .sort((c1, c2) => c1.fileName.toLowerCase() > c2.fileName.toLowerCase() ? 1 : -1)
 
     return videoContents
   })
