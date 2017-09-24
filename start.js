@@ -1,6 +1,5 @@
 const fs = require('fs')
 const argv = require('minimist')(process.argv.slice(2))
-const [width, height] = require('screenres').get()
 const player = require('./lib/player')
 const {
   addToPlaylist,
@@ -17,9 +16,6 @@ if (argv.h || argv.help) {
   console.log('  --random         only play karaokes at random without server')
   console.log('  --novideo        play only audio')
   console.log('  -l  --load       load a playlist')
-  console.log('  -q, --quiet      enjoy the silence')
-  console.log('  -v, --verbose    make mplayer verbose')
-  console.log('  -d, --debug      debug mplayer')
   console.log('  -h, --help       display this help')
   process.exit(1)
 }
@@ -30,16 +26,19 @@ if (argv.q || argv.quiet) {
 
 const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
 
-const mplayerOptions = {
-  verbose: !!(argv.verbose || argv.v),
-  debug: !!(argv.debug || argv.d),
-  args: '-ass -fixed-vo' +
-        ` -vf scale=${width}:-3:::0.00:0.75,expand=:${height},scale,ass`,
-}
+const mpvOptions = [
+  '--keep-open=yes',
+  '--fps=60',
+  '--no-border',
+  '--osd-level=0',
+  '--sub-codepage=UTF-8-BROKEN',
+  '--fullscreen',
+]
+
 if (argv.novideo) {
-  mplayerOptions.args += ' -vo null'
+  mpvOptions.push('--no-video')
 }
-initPlayer(mplayerOptions)
+initPlayer(mpvOptions)
 
 if (argv.random) {
   allContents.forEach(
