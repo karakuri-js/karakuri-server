@@ -4,7 +4,7 @@ A karaoke server
 
 ## Installation
 
-Your will need mplayer, git, node and yarn
+You will need mpv, git, node and yarn
 
 ```bash
 yarn install
@@ -13,9 +13,9 @@ yarn install
 ## Usage
 
 ```bash
-npm run scrap # Prepares karakuri-ready data from karaoke files
-npm start
+yarn run scrap # Prepares karakuri-ready data from karaoke files
+yarn start
 ```
 
 ## Options
-Run `npm start -- --help` and `npm run scrap -- --help` to get a list of options.
+Run `yarn start -- --help` and `yarn run scrap -- --help` to get a list of options.
