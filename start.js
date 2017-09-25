@@ -27,11 +27,6 @@ if (argv.q || argv.quiet) {
 const allContents = JSON.parse(fs.readFileSync('./.data/allContents.json'))
 
 const mpvOptions = [
-  '--keep-open=yes',
-  '--fps=60',
-  '--no-border',
-  '--osd-level=0',
-  '--sub-codepage=UTF-8-BROKEN',
   '--fullscreen',
 ]
 
