@@ -16,6 +16,7 @@ const { getLyricsFromFile } = require('./lib/getLyrics')
 const { start: startWSServer, notifyPlaylist } = require('./lib/websockets')
 const {
   addToPlaylist,
+  addToReportPlaylist,
   randomizeUserPlaylist,
   getPlaylist,
   playNext,
@@ -56,12 +57,22 @@ module.exports = ({ contents, port }) => {
     res.send()
   })
 
-  // TODO when the app will handle this, change to app.post
   app.post('/randomize', (req, res) => {
     if (!req.body.username) return res.status(404).json({ message: 'Missing username' })
     randomizeUserPlaylist(req.body.username)
     notifyPlaylist(getPlaylist())
     res.send({ message: 'Randomized' })
+  })
+
+  app.post('/report', (req, res) => {
+    const id = (req.body.id || '').toString()
+    const username = req.body.username || ''
+    const comment = req.body.comment || ''
+    const content = contents.find(c => c.id === id)
+    if (!content) return res.status(404).json({ message: 'Not found' })
+
+    addToReportPlaylist({ comment, content, username })
+    res.send({ message: 'Reported' })
   })
 
   app.get('/contents/:id', (req, res) => {
