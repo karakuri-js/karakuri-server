@@ -18,6 +18,7 @@ const {
   addToPlaylist,
   addToReportPlaylist,
   randomizeUserPlaylist,
+  sortUserPlaylist,
   getPlaylist,
   playNext,
   pause,
@@ -62,6 +63,14 @@ module.exports = ({ contents, port }) => {
     randomizeUserPlaylist(req.body.username)
     notifyPlaylist(getPlaylist())
     res.send({ message: 'Randomized' })
+  })
+
+  app.post('/sortPlaylist', (req, res) => {
+    if (!req.body.username) return res.status(404).json({ message: 'Missing username' })
+    const contentIds = req.body.contentIds || []
+    sortUserPlaylist(contentIds, req.body.username)
+    notifyPlaylist(getPlaylist())
+    res.send({ message: 'Done' })
   })
 
   app.post('/report', (req, res) => {
