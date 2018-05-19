@@ -19,6 +19,7 @@ const {
   addToReportPlaylist,
   randomizeUserPlaylist,
   sortUserPlaylist,
+  removeFromPlaylist,
   getPlaylist,
   playNext,
   pause,
@@ -71,6 +72,12 @@ module.exports = ({ contents, port }) => {
     sortUserPlaylist(contentIds, req.body.username)
     notifyPlaylist(getPlaylist())
     res.send({ message: 'Done' })
+  })
+
+  app.post('/remove', (req, res) => {
+    removeFromPlaylist(req.body.id)
+    notifyPlaylist(getPlaylist())
+    res.send({ message: 'Removed' })
   })
 
   app.post('/report', (req, res) => {
