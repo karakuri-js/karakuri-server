@@ -1,5 +1,11 @@
 const fs = require('fs')
-const { chain, flatten, kebabCase, last, omit } = require('lodash')
+const {
+  chain,
+  flatten,
+  kebabCase,
+  last,
+  omit,
+} = require('lodash')
 const argv = require('minimist')(process.argv.slice(2))
 
 if (argv.h || argv.help) {
@@ -32,9 +38,9 @@ function getFileInfos(fileName, dirPath, stat) {
   // Group by top directory : Take the name of the topmost directory, excluding the base one :
   //   /karaoke/TEMP/Anime >> TEMP
   //   if anything is in the top directory, it will be indexed as such.
-  const dirName = groupBySubdirectories ?
-      last(directories) :
-      (directories[1] || directories[0])
+  const dirName = groupBySubdirectories
+    ? last(directories)
+    : (directories[1] || directories[0])
 
   const fileNamePatterns = fileName.match(REGEX_WITH_LANGUAGE) || []
 
@@ -74,8 +80,8 @@ const getFileListInfos = (filesList, dirPath) => Promise.all(
 
         return resolve(getFileInfos(fileName, dirPath, stat))
       })
-    ))
-  )
+    )),
+  ),
 )
 
 const getDirectoryContents = dirPath => new Promise((resolve, reject) => (
@@ -83,12 +89,12 @@ const getDirectoryContents = dirPath => new Promise((resolve, reject) => (
     if (err) return reject(err)
 
     return getFileListInfos(filesList, dirPath)
-    .then(results => Promise.all(
-      results.map(
-        result => (result.isDir ? getDirectoryContents(result.path) : Promise.resolve(result))
-      )
-    ))
-    .then(results => resolve(flatten(results)))
+      .then(results => Promise.all(
+        results.map(
+          result => (result.isDir ? getDirectoryContents(result.path) : Promise.resolve(result)),
+        ),
+      ))
+      .then(results => resolve(flatten(results)))
   })
 ))
 
@@ -101,7 +107,7 @@ function createDataDir() {
 }
 
 const getFormattedContent = () => (
-  getDirectoryContents(karaokeDirectory).then(contents => {
+  getDirectoryContents(karaokeDirectory).then((contents) => {
     const videoContents = chain(contents)
       .groupBy('pathWithoutExtension')
       .mapValues(([content1 = {}, content2 = {}]) => {
@@ -109,11 +115,11 @@ const getFormattedContent = () => (
         const subtitlesContent = [content1, content2].find(({ isSubtitles }) => isSubtitles) || {}
         return omit(
           Object.assign(videoContent, { subtitles: subtitlesContent.path }),
-          ['isDir', 'isVideo', 'isSubtitles', 'pathWithoutExtension']
+          ['isDir', 'isVideo', 'isSubtitles', 'pathWithoutExtension'],
         )
       })
       .filter(content => content.id)
-      .sort((c1, c2) => c1.fileName.toLowerCase() > c2.fileName.toLowerCase() ? 1 : -1)
+      .sort((c1, c2) => (c1.fileName.toLowerCase() > c2.fileName.toLowerCase() ? 1 : -1))
 
     return videoContents
   })
@@ -122,9 +128,8 @@ const getFormattedContent = () => (
 if (require.main === module) {
   createDataDir()
   getFormattedContent()
-    .then(allContents =>
-      fs.writeFileSync('./.data/allContents.json', JSON.stringify(allContents, null, 2)))
-    .catch(error => {
+    .then(allContents => fs.writeFileSync('./.data/allContents.json', JSON.stringify(allContents, null, 2)))
+    .catch((error) => {
       console.error(error)
       process.exit(1)
     })
