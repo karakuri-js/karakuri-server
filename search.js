@@ -1,11 +1,11 @@
-const { addToPlaylist } = require('./lib/smplayer')
+const clear = require('cli-clear')
 const prompt = require('prompt')
 const chalk = require('chalk')
+const { addToPlaylist } = require('./lib/smplayer')
 const getFormattedContent = require('./localScrapper')
-const clear = require('cli-clear')
 const fuzzySearch = require('./lib/fuzzySearch')
 
-const askForKara = (choices) => new Promise(resolve => (
+const askForKara = choices => new Promise(resolve => (
   prompt.get(['choice'], (err, res) => {
     const choice = parseInt(res.choice, 10)
     if (choice !== 0 && parseInt(choice, 10) == choice) { // eslint-disable-line eqeqeq
@@ -30,7 +30,7 @@ const askForSearch = (allContents) => {
     karaFound.forEach(({ path }, index) => {
       const coloredPath = regexes.reduce(
         (previous, regex) => previous.replace(regex, chalk.green('$1')),
-        path
+        path,
       )
       console.log(`${index + 1}: ${coloredPath}`)
     })
@@ -40,7 +40,7 @@ const askForSearch = (allContents) => {
 
 process.stdout.write('Loading data...')
 getFormattedContent()
-  .then(allContents => {
+  .then((allContents) => {
     process.stdout.write('\r')
     prompt.start()
     askForSearch(allContents)

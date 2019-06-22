@@ -3,6 +3,7 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const { createServer } = require('http')
 const { networkInterfaces: getNetworkInterfaces } = require('os')
+
 const networkInterfaces = getNetworkInterfaces()
 const addresses = Object.keys(networkInterfaces)
   .reduce((array, interfaceName) => (
@@ -14,6 +15,7 @@ const addresses = Object.keys(networkInterfaces)
 const player = require('./lib/player')
 const { getLyricsFromFile } = require('./lib/getLyrics')
 const { start: startWSServer, notifyPlaylist } = require('./lib/websockets')
+
 const {
   addToPlaylist,
   addToReportPlaylist,
@@ -94,10 +96,10 @@ module.exports = ({ contents, port }) => {
   app.get('/contents/:id', (req, res) => {
     if (!req.params.id) return res.status(404).json({ message: 'Missing song id' })
     const content = contents.find(c => c.id === req.params.id)
-    if (!content) return res.status(404).json({ message: 'Content ' + req.params.id + ' is unavailable' })
+    if (!content) return res.status(404).json({ message: `Content ${req.params.id} is unavailable` })
     res.json(Object.assign(
       content,
-      { lyrics: content.subtitles ? getLyricsFromFile(content.subtitles) : [] }
+      { lyrics: content.subtitles ? getLyricsFromFile(content.subtitles) : [] },
     ))
   })
 

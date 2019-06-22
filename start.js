@@ -1,6 +1,7 @@
 const fs = require('fs')
 const argv = require('minimist')(process.argv.slice(2))
 const player = require('./lib/player')
+
 const {
   addToPlaylist,
   loadPlaylist,
@@ -37,7 +38,7 @@ initPlayer(mpvOptions)
 
 if (argv.random) {
   allContents.forEach(
-    content => addToPlaylist({ content, username: CONSOLE_USERNAME })
+    content => addToPlaylist({ content, username: CONSOLE_USERNAME }),
   )
   randomizeUserPlaylist(CONSOLE_USERNAME)
   playNext()
