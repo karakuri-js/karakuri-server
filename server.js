@@ -1,6 +1,7 @@
 const chalk = require('chalk')
 const express = require('express')
 const bodyParser = require('body-parser')
+const cors = require('cors')
 const { createServer } = require('http')
 const { networkInterfaces: getNetworkInterfaces } = require('os')
 const networkInterfaces = getNetworkInterfaces()
@@ -33,6 +34,7 @@ module.exports = ({ contents, port }) => {
   startWSServer({ server })
 
   app.use(bodyParser.json())
+  app.use(cors())
   app.get('/contents', (req, res) => res.json(contents))
 
   app.post('/request', (req, res) => {
